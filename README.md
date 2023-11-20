@@ -80,3 +80,41 @@ docker build [Dockerfile 위치]
 ```bash
 docker run -p [HOST포트:Container포트] [image 이름]
 ```
+
+# 2. Image, Container의 여러 옵션과 명령어들
+
+-   `docker ps`: 실행중인 모든 container를 보여줌
+
+    -   `docker ps -a`: 중지된 것까지 포함
+
+-   `docker run [image id 혹은 name(tag)]`: 변경된 이미지 기반 container 시작
+
+    -   해당 container는 default로 foreground(attached)에서 실행됨
+    -   detached mode: `-d`
+    -   input 필요한 경우(pseudo 터미널과 함께): `-it`
+
+-   `docker start [container id 혹은 name(tag)]`: 변경된 image가 없이 그냥 container 시작
+
+    -   해당 container는 default로 background(detached)에서 실행됨
+    -   attached mode: `-a`
+    -   input이 필요한 경우(pseudo 터미널과 함께): `-a -i`
+
+-   이미 실행된 container에 attach
+
+    -   `docker attach [container id 혹은 name(tag)]`
+    -   `docker logs -f [container id 혹은 name(tag)]`
+
+-   삭제
+
+    -   image: `rmi`
+    -   사용되지 않는 모든 image 제거: `docker image prune`
+    -   container: `rm`
+    -   중지된 container 자동 제거하기(주로 쓰임): 실행할 때 `docker run --rm ...`
+
+-   Inspect image: `docker image inspect [image id 혹은 name(tag)]`
+-   copy container file/folder(바람직하지는 않음): `docker cp [볼사하려는 것 HOST 디렉토리] [container id 혹은 name(tag)]:/[디렉토리]` 혹은 `docker cp [container id 혹은 name(tag)]:/[디렉토리] [볼사하려는 것 HOST 디렉토리]`
+
+-   name, tag 지정하기
+
+    -   name: `--name [이름]`
+    -   tag: version과 같은 옵션 정보 `-t [이름]:[태그]`
