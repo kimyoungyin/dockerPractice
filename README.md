@@ -118,3 +118,30 @@ docker run -p [HOST포트:Container포트] [image 이름]
 
     -   name: `--name [이름]`
     -   tag: version과 같은 옵션 정보 `-t [이름]:[태그]`
+
+# 3. 이미지 공유하기
+
+보통 빌드되어 완성된 이미지를 Docker Hub에 공유하며, Dockerfile을 공유하지는 않습니다.
+
+같은 repository에 push하면 tag에 계속 표시됩니다.
+
+-   로그인(초기에 한 번만 하면 됨): `docker login`
+-   이름을 Docker Hub repository와 동일하게 설정(기존 이미지 이름 변경 혹은 새로 이미지 생성): `docker tag [기존 이름]:[기존 태그] [복제할 이름]`
+
+-   push(로그인 필요)
+
+    ```bash
+    docker push yeongyin/goalapp:tagname
+    ```
+
+-   pull(로그인 필요 없음)
+
+    ```bash
+    docker pull yeongyin/goalapp:tagname
+    ```
+
+    혹은 그냥 바로 컨테이너를 실행한다면 다음과 같이 할 수 있으나, 자동으로 latest version을 반영하진 못하긴 때문에 수동으로 `pull`하길 바랍니다.
+
+    ```bash
+    docker run yeongyin/goalapp:tagname
+    ```
