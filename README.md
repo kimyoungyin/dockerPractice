@@ -148,22 +148,92 @@ docker run -p [HOST포트:Container포트] [image 이름]
 
 # 4. 데이터 관리 및 볼륨(volume)
 
+## 1) 데이터 종류
+
 데이터의 종류는 Application, Temporary App Data, Permanent App Data가 있을 것입니다.
 
-## 1) Application(image)
+### Application(image)
 
 image는 "read-only", 즉 수정이 불가합니다.
 
 그러므로 프로젝트에서 어떤 데이터를 변경한다는 것은 image를 re-build해야 한다는 것과 같습니다. 이미지 내부에 그러한 데이터들 저장(store)하고 있다는 것입니다.
 
-## 2) Temporary App Data(container)
+### Temporary App Data(container)
 
 하지만 기본적으로 "read-write"가 가능한 container에 저장된 데이터 중 일부는 일시적이며, container가 종료됨과 동시에 삭제될 수 있습니다. 예를 들어 user input, fetched data, temporary files 등등이 있죠.
 
-이는 image layer를 감싸고 있는 container layer에서만 이루어지며, image layer의 데이터 변화와는 관계가 없습니다.
+이는 image layer를 감싸고 있는 container layer에서만 이루어지며, image layer의 데이터 변화와는 관계가 없습니다. Image layer는 "read-only"라는 사실을 잊지 맙시다.
 
-## 3) Permanent App Data
+### Permanent App Data
 
 이는 container가 삭제되더라도 유지되어야 하는 데이터이며, 데이터베이스에 저장된 유저 정보와 같은 것들이 이에 해당됩니다.
 
 read+write가 가능하고 영구적인 이 데이터는, 'volume'의 도움을 받아 구현 가능합니다.
+
+## 2) External Data Storages
+
+HOST에 저장된 폴더이며, 이를 container의 특정 경로와 연결시킨다.
+
+"read-write"가 가능한 Permanent data이며 HOST에 파일을 추가하면 container에, container에서 파일을 추가하면 HOST에 반영된다.
+
+-   volume 조회
+    ```bash
+    docker volume ls
+    ```
+-   사용하지 않는 volume 제거
+    ```bash
+    docker volume rm [VOL_NAME]
+    ```
+    ```bash
+    docker volume prune
+    ```
+
+### Volumes(docker가 관리)
+
+우리가 직접 접근할 필요가 없는 데이터이며(실제로 경로를 찾기 힘듦), docker가 직접 관리합니다.
+
+-   Anonymous volues: 우리가 모르는 어떤 HOST 경로에 container 경로가 매핑됩니다. 해당 HOST 경로를 정학히 알 수 없으며, container가 shut down 되면 사라집니다. 이 경우에는 `Dockerfile`에 미리 작성합니다.
+    ```Docker
+    VOLUME [ "경로" ]
+    ```
+-   Named volumes: container가 shut down되도 HOST, container 내 volume은 사라지지 않습니다. 영구적이어야 하지만 해당 파일에 엑세스할 필요가 없는 경우에 사용합니다. 이 경우에는 `Dockerfile`에 작성하지 않고 container를 실행할 때 다음과 같이 작성합니다.
+    ```bash
+    docker run -v [volume 이름]:[CONTAINER 경로] [IMAGE 이름]
+    ```
+
+### Bind Mounts(우리가 관리)
+
+실제로 HOST 경로를 알고 있는 데이터입니다. 우리가 직접 매핑할 HOST 경로를 선언하게 됩니다.
+
+그렇기 때문에, bind mounts는 permanent, editable data에 적합합니다.
+
+예를 들면 source code가 있습니다. Container는 image의 스냅샷을 기반하여 실행되기 때문에 막 변경한 데이터가 container에 반영되지 않는데, bind mounts 데이터로 처리하면 container가 실행될 때 해당 data를 반영하게 되며, 물론 변경점이 발생할 때마다 container에도 반영됩니다.
+
+Bind Mounts도 container에만 반영해야 하기 때문에 `Dockerfile`에 작성하지 않습니다.
+
+Host(프로젝트 전체) 파일들을 image를 이용해 만든 container에 덮어 씌우는데, 이 떄 `node_modules`는 사라지게 되는 문제가 있습니다(Host에서는 `npm install`을 안 해서 `node_modules`가 존재하지 않는다는 가정 하에).
+
+해당 문제를 해결하기 위해 "더 긴 container 내부 경로를 채택한다"는 Docker volume에 원칙을 이용하여 `-v /app/node_modules`와 같은 anonymous volume을 하나 추가합니다.
+
+```bash
+docker run -v "[HOST 절대경로(즉, 프로젝트 절대경로)]:[CONTAINER WORKDIR]" -v /app/node_modules [IMAGE 이름]
+```
+
+이 때, 경로에 공백이나 특수문자가 있을 수 있으므로 경로 부분을 따옴표로 묶기를 권장합니다.
+
+### 추가: Nodejs 웹 서버의 경우, 서버 변경점을 반영하기 위해서는 `nodemon`을 적용해야
+
+```json
+"scripts": {
+	"start": "nodemon server.js"
+},
+"devDependencies": {
+	"nodemon": "2.0.4"
+}
+```
+
+```Docker
+CMD [ "npm", "start" ]
+```
+
+이후 rebuild
