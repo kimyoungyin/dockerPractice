@@ -256,3 +256,7 @@ CMD [ "npm", "start" ]
 ```
 
 이후 rebuild
+
+### 앱 전체를 bind mount로 처리할 거면 `Dockerfile`에 `COPY`가 필요할까요?
+
+네! 스냅샷 image는 production 환경에서 필요하기 때문입니다.
