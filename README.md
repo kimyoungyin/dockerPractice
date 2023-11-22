@@ -260,3 +260,9 @@ CMD [ "npm", "start" ]
 ### 앱 전체를 bind mount로 처리할 거면 `Dockerfile`에 `COPY`가 필요할까요?
 
 네! 스냅샷 image는 production 환경에서 필요하기 때문입니다.
+
+### `.dockerignore`와 작성해야 할 것들
+
+`.dockerignore` 파일에 작성된 것은 이미지 빌드 시 `COPY`에서 무시됩니다.
+
+보통 `node_modules`와 `.git`은 포함하는 것이 좋습니다.
