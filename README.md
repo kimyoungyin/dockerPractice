@@ -145,3 +145,25 @@ docker run -p [HOST포트:Container포트] [image 이름]
     ```bash
     docker run yeongyin/goalapp:tagname
     ```
+
+# 4. 데이터 관리 및 볼륨(volume)
+
+데이터의 종류는 Application, Temporary App Data, Permanent App Data가 있을 것입니다.
+
+## 1) Application(image)
+
+image는 "read-only", 즉 수정이 불가합니다.
+
+그러므로 프로젝트에서 어떤 데이터를 변경한다는 것은 image를 re-build해야 한다는 것과 같습니다. 이미지 내부에 그러한 데이터들 저장(store)하고 있다는 것입니다.
+
+## 2) Temporary App Data(container)
+
+하지만 기본적으로 "read-write"가 가능한 container에 저장된 데이터 중 일부는 일시적이며, container가 종료됨과 동시에 삭제될 수 있습니다. 예를 들어 user input, fetched data, temporary files 등등이 있죠.
+
+이는 image layer를 감싸고 있는 container layer에서만 이루어지며, image layer의 데이터 변화와는 관계가 없습니다.
+
+## 3) Permanent App Data
+
+이는 container가 삭제되더라도 유지되어야 하는 데이터이며, 데이터베이스에 저장된 유저 정보와 같은 것들이 이에 해당됩니다.
+
+read+write가 가능하고 영구적인 이 데이터는, 'volume'의 도움을 받아 구현 가능합니다.
