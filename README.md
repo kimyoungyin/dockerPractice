@@ -180,7 +180,7 @@ HOST에 저장된 폴더이며, 이를 container의 특정 경로와 연결시�
     ```bash
     docker volume ls
     ```
--   사용하지 않는 volume 제거
+-   사용하지 않는 volume 제거: 기본적으로 volume은 `--rm`과 함께 시작된 container가 종료되었을 때 자동으로 삭제되며, 그렇지 않은 경우에는 수동으로 삭제해주어야 합니다.
     ```bash
     docker volume rm [VOL_NAME]
     ```
@@ -192,14 +192,29 @@ HOST에 저장된 폴더이며, 이를 container의 특정 경로와 연결시�
 
 우리가 직접 접근할 필요가 없는 데이터이며(실제로 경로를 찾기 힘듦), docker가 직접 관리합니다.
 
--   Anonymous volues: 우리가 모르는 어떤 HOST 경로에 container 경로가 매핑됩니다. 해당 HOST 경로를 정학히 알 수 없으며, container가 shut down 되면 사라집니다. 이 경우에는 `Dockerfile`에 미리 작성합니다.
+Container 외부의 특정 폴더에 연결된 Docker 내부 폴더/파일입니다.
+
+-   Anonymous volumes: 우리가 모르는 어떤 HOST 경로에 container 경로가 매핑됩니다. 해당 HOST 경로를 정학히 알 수 없으며, container가 shut down 되면 사라집니다. 이 경우에는 `Dockerfile`에 미리 작성합니다. 물론 container를 실행할 때도 작성할 수 있습니다.
+
     ```Docker
     VOLUME [ "경로" ]
     ```
+
+    혹은
+
+    ```bash
+    docker run -v :[CONTAINER 경로] [IMAGE 이름]
+    ```
+
+    Anonymous volume은 이미 존재하는 데이터를 잠그는 데에도 유용합니다. Container 내부 경로의 우선순위를 높여서 이를 가능하게 하는데, 아래 `node_modules`에 대한 정보를 확인해보세요.
+
 -   Named volumes: container가 shut down되도 HOST, container 내 volume은 사라지지 않습니다. 영구적이어야 하지만 해당 파일에 엑세스할 필요가 없는 경우에 사용합니다. 이 경우에는 `Dockerfile`에 작성하지 않고 container를 실행할 때 다음과 같이 작성합니다.
+
     ```bash
     docker run -v [volume 이름]:[CONTAINER 경로] [IMAGE 이름]
     ```
+
+    Named volume은 실제로 general 데이터로, 여러 container가 이를 공유할 수 있습니다.
 
 ### Bind Mounts(우리가 관리)
 
@@ -221,7 +236,9 @@ docker run -v "[HOST 절대경로(즉, 프로젝트 절대경로)]:[CONTAINER WO
 
 이 때, 경로에 공백이나 특수문자가 있을 수 있으므로 경로 부분을 따옴표로 묶기를 권장합니다.
 
-### 추가: Nodejs 웹 서버의 경우, 서버 변경점을 반영하기 위해서는 `nodemon`을 적용해야
+이렇게 프로젝트 전체를 binding하였기 때문에, docker 명령어로는 데이터를 삭제할 수 없으며 host의 파일을 직접 제거하는 것이 유일한 방법입니다.
+
+### Bind Mounts 추가: Nodejs 웹 서버의 경우, 서버 변경점을 반영하기 위해서는 `nodemon`을 적용해야
 
 ```json
 "scripts": {
