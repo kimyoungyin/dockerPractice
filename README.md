@@ -230,8 +230,10 @@ Host(프로젝트 전체) 파일들을 image를 이용해 만든 container에 �
 
 해당 문제를 해결하기 위해 "더 긴 container 내부 경로를 채택한다"는 Docker volume에 원칙을 이용하여 `-v /app/node_modules`와 같은 anonymous volume을 하나 추가합니다.
 
+그리고 마지막으로, HOST에서만 해당 내용을 변경 가능하고 container에서는 HOST의 내용을 변경하면 안되기 때문에 "read-only" 처리해주어야 합니다. 그래서 'container 경로' 뒤에 `:ro`를 추가해줍니다. 여기서 `-v /app/temp` anonymous volume도 추가해야 하는데, 이유는 아시겠죠?
+
 ```bash
-docker run -v "[HOST 절대경로(즉, 프로젝트 절대경로)]:[CONTAINER WORKDIR]" -v /app/node_modules [IMAGE 이름]
+docker run -v "[HOST 절대경로(즉, 프로젝트 절대경로)]:[CONTAINER WORKDIR]:ro" -v /app/temp -v /app/node_modules[IMAGE 이름]
 ```
 
 이 때, 경로에 공백이나 특수문자가 있을 수 있으므로 경로 부분을 따옴표로 묶기를 권장합니다.
