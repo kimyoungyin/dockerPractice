@@ -212,7 +212,7 @@ HOST에 저장된 폴더이며, 이를 container의 특정 경로와 연결시�
 
 Container 외부의 특정 폴더에 연결된 Docker 내부 폴더/파일입니다.
 
--   Anonymous volumes: 우리가 모르는 어떤 HOST 경로에 container 경로가 매핑됩니다. 해당 HOST 경로를 정학히 알 수 없으며, container가 shut down 되면 사라집니다. 이 경우에는 `Dockerfile`에 미리 작성합니다. 물론 container를 실행할 때도 작성할 수 있습니다.
+-   Anonymous volumes: 우리가 모르는 어떤 HOST 경로에 container 경로가 매핑됩니다. 해당 HOST 경로를 정학히 알 수 없으며, container가 shut down 되면 사라집니다. 그러므로 temporary data라 할 수 있습니다. 이 경우에는 `Dockerfile`에 미리 작성하며 물론 container를 실행할 때도 작성할 수 있습니다.
 
     ```Docker
     VOLUME [ "경로" ]
