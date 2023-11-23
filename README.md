@@ -99,7 +99,7 @@ ENV PORT $DEFAULT_PORT
 EXPOSE $PORT
 ```
 
-# 2. Image, Container의 여러 옵션과 명령어들
+# 3. Image, Container의 여러 옵션과 명령어들
 
 -   `docker ps`: 실행중인 모든 container를 보여줌
 
@@ -137,7 +137,7 @@ EXPOSE $PORT
     -   name: `--name [이름]`
     -   tag: version과 같은 옵션 정보 `-t [이름]:[태그]`
 
-# 3. 이미지 공유하기
+# 4. 이미지 공유하기
 
 보통 빌드되어 완성된 이미지를 Docker Hub에 공유하며, Dockerfile을 공유하지는 않습니다.
 
@@ -164,7 +164,7 @@ EXPOSE $PORT
     docker run yeongyin/goalapp:tagname
     ```
 
-# 4. 데이터 관리 및 볼륨(volume)
+# 5. 데이터 관리 및 볼륨(volume)
 
 ## 1) 데이터 종류
 
