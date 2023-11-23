@@ -75,18 +75,28 @@ docker build [Dockerfile 위치]
 
 ## 8) container 실행하기
 
-`EXPOSE`를 사용했던 경우, -p 태그를 추가하여 host port와 대응되어 열어줄 container port를 작성해야 함
+`EXPOSE`를 사용했던 경우, -p 태그를 추가하여 host port와 대응되어 열어줄 container port를 작성해야 합니다.
 
-## 9) 추가: 환경변수
+```bash
+docker run -p [HOST포트:Container포트] [image 이름]
+```
 
-3가지 방식이 있다
+## 9) 추가: ENV와 ARG
+
+ENV는 3가지 방식이 있습니다.
 
 -   `Dockerfile`: `ENV PORT 80` 이후 `EXPOSE $PORT`, `process.env.PORT`
 -   명령어: `--env PORT=80` or `--e PORT=80`
 -   `.env`: `--env-file 파일 경로`
 
-```bash
-docker run -p [HOST포트:Container포트] [image 이름]
+ARG는 build 시에만 사용 가능하다. 즉, `Dockerfile`에서나 build 명령어(`--build-arg DEFAULT=8000`)로 사용할 수 있습니다. 후자가 전자보다 더 높은 우선순위를 가집니다.
+
+```Docker
+ARG DEFAULT_PORT=80
+
+ENV PORT $DEFAULT_PORT
+
+EXPOSE $PORT
 ```
 
 # 2. Image, Container의 여러 옵션과 명령어들
