@@ -77,6 +77,14 @@ docker build [Dockerfile 위치]
 
 `EXPOSE`를 사용했던 경우, -p 태그를 추가하여 host port와 대응되어 열어줄 container port를 작성해야 함
 
+## 9) 추가: 환경변수
+
+3가지 방식이 있다
+
+-   `Dockerfile`: `ENV PORT 80` 이후 `EXPOSE $PORT`, `process.env.PORT`
+-   명령어: `--env PORT=80` or `--e PORT=80`
+-   `.env`: `--env-file 파일 경로`
+
 ```bash
 docker run -p [HOST포트:Container포트] [image 이름]
 ```
