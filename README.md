@@ -329,17 +329,29 @@ docker run --network 네트워크 이름 ...
 
 # 7. 다중 container application with Docker Compose
 
-Docker Compose란?: application(동일한 host)을 구성하는 여러 image(container)를 한 파일 내에서 build, start, stop... 할 수 있다!(Orchestration Commands)
+Docker Compose란?: application(동일한 host)을 구성하는 여러 image(container)를 한 파일 내에서 build, start, stop... 할 수 있습니다(Orchestration Commands).
+
+(물론 귀찮은 명령어 입력을 편하게 하기 위해 단일 container에서도 유용하게 사용됩니다)
 
 물론, Docker Compose는 Dockerfile을 대체하는 개념이 아니며, image나 container 또한 마찬가지 입니다. 그리고 다른 host를 container를 관리하는 데에도 적합하지 않습니다.
 
-Docker Compose에서 'service = container'입니다.
+Docker Compose에서 service는 container와 거의 동일합니다.
 
 이제 `docker-compose.yaml` 파일을 작성해봅시다.
 
-rhdtlr
+## 0) 기본 설정과 명령어
 
 이 파일은 들여쓰기로 구문이 구분됩니다.
+
+default mode는 attached mode이며, 막약 detached mode를 원하면 `-d`를 입력합니다
+
+Docker Compose를 통해 container를 '실행'하면 이와 동시에 container끼리 공유하는 default network가 같이 생성됩니다.
+
+-   `docker-compose build`: 빌드만 다시 할 경우. container를 시작하지는 않음
+-   `docker-compose up -d`: detached mode로 빌드 및 시작
+-   `docker-compose up -d --build`: 새로운 이미지를 무조건 빌드, Dockerfile이 변경된 경우
+-   `docker-compose down`: 모든 container와 network를 중지하고 삭제
+-   `docker-compose down -v`: volume도 삭제(보통 영구 데이터이므로 좋지는 않음)
 
 ## 1) `version`
 
@@ -362,9 +374,52 @@ services:
     frontend:
 ```
 
-### 3) container
+물론 실행되는 container의 실제 이름은 `[프로젝트 이름]_[service 이름]_1`과 같은 텍스트가 추가되어 변경되지만, 도커 내부적으로는 작성한 이름 그대로 사용하니 걱정하지 마세요.
 
-default 설정: `-d`, `--rm`
+-   주의: 서로 네트워킹하려는 service의 domain을 이 이름으로 작성해놨는지 확인합시다. 그래야 내부적으로 docker가 ip로 변환해줍니다.
+
+### service 하위 설정들(image, container)
+
+각 container의 default 설정: `-d`, `--rm`
 
 -   `image`: background image(혹은 주소)
--
+-   `volumes`: `-v` 이후에 작성할 것들
+    -   anonymous volumes: `[container의 절대 경로]`만 입력합니다.
+    -   named volumes: `[name]:[container의 절대 경로]`로 입력합니다. container 실행 시 volume의 이름은 `프로젝트 이름_name`으로 결정됩니다.
+    -   bind mounts: `[프로젝트의 상대 경로]:[container 절대 경로]`를 입력하면, 자동으로 절대 경로 처리를 해줍니다. 이게 또다른 Docker Compose의 장점이죠!
+-   `container_name`: service의 이름과 다르게 container name이 변경되는 것이 싫다면 여기서 직접 결정할 수 있습니다.
+-   `environment`: `-e` 이후에 작성할 것들.
+    -   `:` 혹은 `=`로 값을 정할 수 있습니다.
+-   `env_file`: 이 것으로 `environment` 없이 `.env` file로 대체할 수도 있습니다. 상대경로를 입력합니다.
+-   `networks`: 이건 굳이 입력할 필요는 없습니다. `docker-compose` 파일 내에서 선언된 container(image)는 자동으로 동일한 자체 network에 연결되기 때문입니다. 그래도 작성하면 default network 뿐만 아니라 우리가 선언한 자체 네트워크에도 연결됩니다. container 실행 시 network 이름은 `[프로젝트 이름]_[default 혹은 network 이름]`으로 결정됩니다.
+-   `build`: 빌드할 `Dockerfile`을 찾도록 경로를 입력합니다.
+
+    ```yaml
+    # 빌드 파일의 이름이 Dockerfile인 경우 shortcut
+    container 이름:
+    	build: ./backend
+
+    # 길게 작성: 빌드 파일의 이름이 다르거나, Dockerfile이 복사하기 위해 참조할 파일들이 Dockerfile의 상단에도 있을 경우
+    container 이름:
+    	build:
+    		context: ./backend
+    		dockerfile: Dockerfile-dev
+    ```
+
+-   `depends_on`: 실행 중인 다른 container에 의존해야 할 때, 리스트 형태로 해당 container name을 입력합니다. 의존하는 컨테이너가 실행되고 나서야 자신이 실행됩니다
+
+-   `-it` 활성화
+    ```yaml
+    stdin_open: true
+    tty: true
+    ```
+
+## 3) `volumes`
+
+named volumes을 container에서 작성했을 경우에만 최상단에 다음과 같이 name을 적어주어야 합니다
+
+```yaml
+volumes:
+	data:
+	logs:
+```
