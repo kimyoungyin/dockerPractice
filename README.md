@@ -326,3 +326,45 @@ docker run --network 네트워크 이름 ...
 그리고 domain의 경우 연결하려는 container의 name을 적어주면, ip를 하드코딩할 필요 없이 자동으로 해당 ip로 변환됩니다.
 
 여기서 좋은 점은, db container와 같이 다른 곳이 아니라 오로지 '다른 container'에게만 요청을 받는 경우에는 port를 열지 않아도 된다는 것입니다.
+
+# 7. 다중 container application with Docker Compose
+
+Docker Compose란?: application(동일한 host)을 구성하는 여러 image(container)를 한 파일 내에서 build, start, stop... 할 수 있다!(Orchestration Commands)
+
+물론, Docker Compose는 Dockerfile을 대체하는 개념이 아니며, image나 container 또한 마찬가지 입니다. 그리고 다른 host를 container를 관리하는 데에도 적합하지 않습니다.
+
+Docker Compose에서 'service = container'입니다.
+
+이제 `docker-compose.yaml` 파일을 작성해봅시다.
+
+rhdtlr
+
+이 파일은 들여쓰기로 구문이 구분됩니다.
+
+## 1) `version`
+
+기능에 따라 버전 구분(어떤 기능을 사용할 수 있는지)
+
+Optional: 사실 우리가 구현하는 대부분의 기능들은 이 버전과 크게 관련 없을 것입니다.
+
+```yaml
+version: "3.8"
+```
+
+## 2) `services`
+
+`services`의 하위 자식들은 container가 될 것이며, 각각의 container는 이름을 마음대로 지정할 수 있습니다.
+
+```yaml
+services:
+    db:
+    backend:
+    frontend:
+```
+
+### 3) container
+
+default 설정: `-d`, `--rm`
+
+-   `image`: background image(혹은 주소)
+-
