@@ -284,3 +284,45 @@ CMD [ "npm", "start" ]
 `.dockerignore` 파일에 작성된 것은 이미지 빌드 시 `COPY`에서 무시됩니다.
 
 보통 `node_modules`와 `.git`은 포함하는 것이 좋습니다.
+
+# 6. 네트워킹(컨테이너 외부와 소통하기)
+
+## 1) world-wide api <- container
+
+가능
+
+## 2) host <- container
+
+domain을 `localhost` 대신 `host.docker.internal`로 사용하면 container가 실행된 HOST의 ip로 변환됩니다.
+
+예를 들면, db가 로컬 환경인 경우 container에서 연결할 db 주소를 위와 같이 작성하면 됩니다.
+
+## 3) container <- container
+
+하나의 컨테이너는 하나의 역할만 하는 것이 좋기에, 여러 컨테이너로 프로젝트를 구성하는 것은 흔한 작업이 될 것입니다.
+
+보통 db - server 간의 관계가 그렇습니다
+
+### 원시적인 방법(비추천)
+
+참조할 대상 container를 먼저 실행(예를 들면 db)한 후 `docker inspect`로 ip를 요청할 container의 domain에 작성하여 실행합니다.
+
+### container networks
+
+네트워크 생성
+
+```bash
+docker network create 네트워크 이름
+```
+
+이후 통신할 container 실행
+
+```bash
+docker run --network 네트워크 이름 ...
+```
+
+동일한 네트워크를 사용하면 container 서로간의 연결을 허용합니다.
+
+그리고 domain의 경우 연결하려는 container의 name을 적어주면, ip를 하드코딩할 필요 없이 자동으로 해당 ip로 변환됩니다.
+
+여기서 좋은 점은, db container와 같이 다른 곳이 아니라 오로지 '다른 container'에게만 요청을 받는 경우에는 port를 열지 않아도 된다는 것입니다.
