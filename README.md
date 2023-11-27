@@ -423,3 +423,96 @@ volumes:
 	data:
 	logs:
 ```
+
+# 8. (수동 배포)Deployment with AWS EC2
+
+로컬과 동일한 환경을 그대로 배포 환경에 배송해봅시다.
+
+배포 환경에서 조심해야 할 것
+
+-   Bind Mounts를 사용하지 않는다.
+-   다른 빌드 과정이 필요하다.
+-   control과 responsibility 간의 trade-off 존재
+
+## 0) 배포 준비
+
+-   Dockerfile: 의 base image를 `-alpine`으로 처리하면 좋습니다. 빌드 속도와 배포 속도를 높입니다.
+-   Bind mounts를 사용하지 않도록 설정: 이는 개발 환경을 용이하게 하기 위해 진행했던 것이기에 remote(배포) 환경에서는 사용하지 않아야 합니다. 그러므로 대신 COPY만을 사용하여 source code를 복사합니다.
+
+## 1) ec2 인스턴스 생성
+
+-   Amazon Linux 2 AMI(HVM), x86 선택
+-   세부정보 -> default VPC 설정 확인(없으면 생성)
+-   인스턴스 생성 및 실행(SSH(Secure SHell, 로컬에서 리모트에 접속하기 위한 프로토콜) key 저장): `ssh` 명령어는 mac, linux 환경에서는 내장되어 있으나 window에서는 WSL2 설정을 해주거나 puTTy(ssh 클라이언트)를 사용해야 합니다.
+
+## 2) security group 생성
+
+ec2 내부에서 외부 어딘가에 접근하는 것은 가능합니다(아웃바운드 규칙).
+
+하지만 ec2는 기본적으로 외부에서의 world-wide 접근이 차단되어 있으며, 오로지 SSH를 통한 접근만 허용하는 상태입니다(인바운드 규칙).
+
+하지만 '보안 그룹'을 통해 이를 수정할 수 있습니다.
+
+인스턴스 정보를 보면, 기본적으로 설정된 보안 그룹이 있습니다. 이 중 '인바운드 규칙'을 수정하면 됩니다.
+
+## 3) SSH로 인스턴스에 연결하여 Docker 설치
+
+### SSH key 파일이 사용 가능한지 확인 후 접속
+
+```bash
+chmod 400 [SSH파일명]
+```
+
+-   mac, linux, window-WSL2는 위와 같이 입력하여 확인
+-   window-putty: 건너뜀(다른 방식으로 접근)
+
+```bash
+# AWS 인스턴스에서 제공되는 명령어 형식은 아래와 같습니다
+ssh -i "[SSH key 파일명]" [remote 인스턴스 주소]
+# 이후 연결 여부 질문에 "yes"
+```
+
+### Docker 설치
+
+```bash
+sudo yum update -ysudo yum -y
+install docker
+
+sudo service docker start
+
+sudo usermod -a -G docker ec2-user
+# 이후 로그아웃했다가 다시 로그인
+```
+
+```bash
+# Docker가 사용 가능한지 확인
+sudo systemctl enable docker
+```
+
+## 4) Image 배포, 이를 가져와 container 실행
+
+먼저 로컬 `.dockerignore`에 포함될 파일 설정: `node_modules`, `Dockerfile`, SSH key 파일, `.git`
+
+-   Docker hub에 repository 생성 후 로컬에서 빌드된 이미지 배포(터미널 내에서 dockerhub에 로그인하고 진행하세요)
+
+-   Remote 머신에서 run 명령어 입력(sudo 붙여서, 옵션은 알아서)
+
+```bash
+sudo docker run -d --rm -p 80:80 [repository 주소]
+```
+
+인스턴스 publick ip로 접근해보면 끝!
+
+-   하지만 이러한 방식은 cloud 전문가가 아니면 번거롭고 힘들 수 있습니다. 그렇다면 다음 방법을 참고해보자
+
+# 9. (관리형 배포)Managed Remote Machine with AWS ECS(Elastic Container Service)
+
+(ECS는 프리티어가 적용되지 않습니다. 비용이 청구됩니다)
+
+세부 설정에 대해 걱정할 필요가 없는 방식입니다.
+
+Control 권한이 작아지지만, 엉망이 될 우려도 적은 것입니다.
+
+여기서 중요한 점은, 더이상 Docker가 직접적으로 필요하지 않다는 것입니다(설치 필요 없음). Docker의 개념을 사용하지만, ECS 자체의 개념을 사용합니다.
+
+(돈 드니 패스)
